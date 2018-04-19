@@ -5,5 +5,8 @@ import (
 )
 
 func main(){
+	cmd.Open()
+	defer cmd.Close()
 	cmd.RootCmd.Execute()
 }
+
