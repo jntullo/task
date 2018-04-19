@@ -63,8 +63,10 @@ func listTasks() {
 			if err != nil {
 				fmt.Println("error!")
 			}
-			fmt.Printf("%d - %s\n", i, t.Name)
-			i++
+			if !t.Complete {
+				fmt.Printf("%d - %s\n", i, t.Name)
+				i++
+			}
 		}
 		return nil
 	})
