@@ -11,7 +11,7 @@ var addCmd = &cobra.Command{
 	Short: "Add a task to the task list",
 	Run: func(cmd *cobra.Command, args []string) {
 		task := strings.Join(args, " ")
-		t := Task{task, false }
+		t := Task{ Name: task, Complete: false }
 		err := t.add()
 		if err != nil {
 			fmt.Printf("ERROR! %s", err)

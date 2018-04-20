@@ -9,6 +9,7 @@ import (
 	"log"
 	"runtime"
 	"path"
+	"encoding/binary"
 )
 
 
@@ -34,6 +35,7 @@ func Close() {
 }
 
 type Task struct {
+	ID 	int
 	Name string
 	Complete bool
 }
@@ -41,6 +43,8 @@ type Task struct {
 func (t *Task) add() error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		tasks, err := tx.CreateBucketIfNotExists([]byte("task"))
+		id, _ := tasks.NextSequence()
+		t.ID = int(id)
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -48,24 +52,28 @@ func (t *Task) add() error {
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
-		err = tasks.Put([]byte(t.Name), enc)
+		err = tasks.Put(itob(t.ID), enc)
 		return err
 	})
 	return err
 }
 
+func itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+
 func listTasks() {
 	db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("task")).Cursor()
-		i := 1
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			t, err := decodeTask(v)
 			if err != nil {
 				fmt.Println("error!")
 			}
 			if !t.Complete {
-				fmt.Printf("%d - %s\n", i, t.Name)
-				i++
+				fmt.Printf("%d - %s\n", t.ID, t.Name)
 			}
 		}
 		return nil
