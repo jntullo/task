@@ -80,6 +80,24 @@ func listTasks() {
 	})
 }
 
+func doTask(id int) {
+	db.Update(func(tx *bolt.Tx) error {
+		tasks := tx.Bucket([]byte("task"))
+		encId := itob(id)
+		task := tasks.Get(encId)
+		t, err := decodeTask(task)
+
+		t.Complete = true
+		enc, err := t.encode()
+		err = tasks.Put(encId, enc)
+		if err != nil {
+			fmt.Printf("Error! - %s", err)
+		}
+		fmt.Printf("Marked \"%s\" as completed.\n", t.Name)
+		return err
+	})
+}
+
 func (t *Task) encode() ([]byte, error){
 	enc, err := json.Marshal(t)
 	if err != nil {
